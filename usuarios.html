@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Usuarios</title>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-app.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-auth.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-firestore.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-storage.js"></script>
+    <script src="js/init.js"></script>
+    <script type="module" src="cmp/mi-nav.js"></script>
+    <script type="module" src="cmp/mi-footer.js"></script>
+    <script type="module" src="cmp/mi-progreso.js"></script>
+    <link rel="stylesheet" href="css/estilos.css">
+  </head>
+  <body>
+    <mi-nav id="miNav"></mi-nav>
+    <header>
+      <h1>Usuarios</h1>
+      <a href="usuarioNuevo.html">Agregar…</a>
+    </header>
+    <ul id="lista" class="lista con_imagen">
+      <li>
+        <mi-progreso></mi-progreso>
+      </li>
+    </ul>
+    <mi-footer></mi-footer>
+    <script type="module">
+      import { Fábrica } from "./js/Fabrica.js";
+      import { cod, muestraError } from "./lib/util.js";
+      import { InfoUsuario } from "./js/InfoUsuario.js";
+      import { muestraSesión } from "./js/navegacion.js";
+
+      const ctrlSesión = Fábrica.instancia.ctrlSesión;
+      const ctrlUsuarios = Fábrica.instancia.ctrlUsuarios;
+      const foráneas = Fábrica.instancia.foráneasDeUsuarios;
+
+      protege();
+      async function protege() {
+        try {
+          const usuarioAutorizado = await ctrlSesión.protege("Usuarios");
+          miNav.protege(usuarioAutorizado.privilegios);
+          ctrlUsuarios.consulta(muestraError, muestraUsuarios);
+        } catch (error) {
+          muestraError(error);
+          muestraSesión();
+        }
+      }
+
+      /** @param {InfoUsuario[]} usuarios */
+      function muestraUsuarios(usuarios) {
+        lista.innerHTML = usuarios.map(u => {
+          const parámetros = new URLSearchParams();
+          parámetros.append("id", u.email);
+          const nombre = u.pasatiempo ? u.pasatiempo.nombre : "";
+          const privilegios =
+            u.privilegios.map(p => foráneas.renderPrivilegio(p)).join("<br>");
+          return (/* html */
+            `<li>
+              <a href="usuario.html?${parámetros}">
+                <span class="marco">
+                  <img src="${cod(u.urlDeAvatar)}" alt="Falta el Avatar">
+                </span>
+                <span>
+                  <strong>${cod(u.email)}</strong><br>
+                  ${cod(nombre)}<br>
+                  ${privilegios}
+                </span>
+              </a>
+            </li>`);
+        }).join("");
+      }
+    </script>
+  </body>
+</html>
