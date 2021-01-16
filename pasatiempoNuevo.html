@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pasatiempo Nuevo</title>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-app.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-auth.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-firestore.js"></script>
+    <script
+      src="https://www.gstatic.com/firebasejs/7.24.0/firebase-storage.js"></script>
+    <script src="js/init.js"></script>
+    <script type="module" src="cmp/mi-nav.js"></script>
+    <script type="module" src="cmp/mi-footer.js"></script>
+    <link rel="stylesheet" href="css/estilos.css">
+  </head>
+  <body>
+    <form id="forma">
+      <mi-nav id="miNav"></mi-nav>
+      <header>
+        <a href="pasatiempos.html">Cancelar</a>
+        <h1>Pasatiempo Nuevo</h1>
+        <button type="submit">Guardar</button>
+      </header>
+      <p><label>Nombre <input name="nombre" type="text"></label></p>
+    </form>
+    <mi-footer></mi-footer>
+    <script type="module">
+      import { Fábrica } from "./js/Fabrica.js";
+      import { muestraError } from "./lib/util.js";
+      import { InfoPasatiempo } from "./js/InfoPasatiempo.js";
+      import { muestraPasatiempos, muestraSesión } from "./js/navegacion.js";
+
+      const ctrlSesión = Fábrica.instancia.ctrlSesión;
+      const ctrlPasatiempos = Fábrica.instancia.ctrlPasatiempos;
+
+      protege();
+      async function protege() {
+        try {
+          const usuarioAutorizado = await ctrlSesión.protege("Pasatiempos");
+          miNav.protege(usuarioAutorizado.privilegios);
+          forma.addEventListener("submit", guarda);
+        } catch (error) {
+          muestraError(error)
+          muestraSesión();
+        }
+      }
+
+      /** @param {Event} evt */
+      async function guarda(evt) {
+        try {
+          evt.preventDefault();
+          const data = new FormData(forma);
+          const modelo = new InfoPasatiempo({
+            id: null,
+            nombre: data.get("nombre")
+          });
+          await ctrlPasatiempos.agrega(modelo);
+          muestraPasatiempos();
+        } catch (error) {
+          muestraError(error);
+        }
+      }
+    </script>
+  </body>
+</html>
